@@ -1,20 +1,32 @@
-import { notFound } from 'next/navigation';
+'use client';
+
+import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
 
-const planDetails = {
+type PlanKey = '2kw' | '3kw' | '5kw';
+
+interface PlanData {
+  title: string;
+  price: string;
+  features: string[];
+  image: string;
+  description: string;
+}
+
+const planDetails: Record<PlanKey, PlanData> = {
   '2kw': {
     title: '2kW Solar System',
     price: '₹1.2L',
     features: [
       'Ideal for small homes',
-      'Saves ~₹1000/month on electricity bills',
-      'Supports 1.5-ton AC, lighting, and fans',
-      'Subsidy up to ₹60,000 available',
+      'Saves ~₹1000/month',
+      'Works with 1.5-ton AC, lights, and fans',
+      'Eligible for subsidy up to ₹60,000',
     ],
     image: '/images/2kw.jpeg',
-    description:
-      'The 2kW solar system is perfect for compact households looking to reduce their energy bills and move toward sustainability. Installation is quick and can be done on terraces or rooftops with minimal space.',
+    description: 'Great choice for compact homes aiming to reduce energy costs.',
   },
   '3kw': {
     title: '3kW Solar System',
@@ -22,38 +34,40 @@ const planDetails = {
     features: [
       'Perfect for 2 BHK homes',
       'Saves ~₹1500/month',
-      'Runs 1.5-ton AC, refrigerator, lighting, and TV',
-      'Eligible for ₹78,000 subsidy',
+      'Handles most appliances and a 1.5-ton AC',
+      'Eligible for subsidy up to ₹78,000',
     ],
     image: '/images/3kw.jpeg',
-    description:
-      'The 3kW system strikes the right balance for medium-sized families. It ensures consistent power output and helps reduce grid dependency significantly.',
+    description: 'Balanced choice for medium households to maximize ROI.',
   },
   '5kw': {
     title: '5kW Solar System',
     price: '₹2.5L',
     features: [
-      'Best suited for large homes or villas',
+      'Ideal for large homes or villas',
       'Saves ~₹2500/month or more',
-      'Powers most home appliances including ACs, geysers, and washing machines',
+      'Supports multiple ACs, fridges, and TVs',
       'Eligible for ₹78,000 subsidy',
     ],
     image: '/images/5kw.jpeg',
-    description:
-      'This system is ideal for homes with higher energy consumption. It offers long-term savings, excellent ROI, and is backed by government subsidies and installation support.',
+    description: 'Ultimate choice for full home independence with solar energy.',
   },
-} as const;
+};
 
-type PlanSlug = keyof typeof planDetails;
+export default function PlanPage() {
+  const router = useRouter();
+  const [plan, setPlan] = useState<PlanData | null>(null);
 
-export default async function PlanPage({
-  params,
-}: {
-  params: { slug: string };
-}) {
-  if (!Object.keys(planDetails).includes(params.slug)) return notFound();
+  useEffect(() => {
+    const slug = window.location.pathname.split('/').pop() as PlanKey;
+    if (slug && slug in planDetails) {
+      setPlan(planDetails[slug]);
+    } else {
+      router.push('/not-found');
+    }
+  }, [router]);
 
-  const plan = planDetails[params.slug as PlanSlug];
+  if (!plan) return null;
 
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-6 md:px-12 lg:px-24">
@@ -61,23 +75,18 @@ export default async function PlanPage({
         <h1 className="text-3xl md:text-4xl font-bold text-green-700 mb-2">{plan.title}</h1>
         <p className="text-lg text-gray-600 mb-6">{plan.price}</p>
 
-        {/* Image */}
-        {/* Image */}
-<div className="mb-6 flex justify-center">
-  <Image
-    src={plan.image}
-    alt={plan.title}
-    width={600} // 👈 smaller base size
-    height={300}
-    className="rounded-lg max-w-full h-auto object-cover"
-  />
-</div>
+        <div className="mb-6 flex justify-center">
+          <Image
+            src={plan.image}
+            alt={plan.title}
+            width={500}
+            height={280}
+            className="rounded-lg max-w-full h-auto object-cover"
+          />
+        </div>
 
-
-        {/* Description */}
         <p className="text-gray-700 mb-6 leading-relaxed">{plan.description}</p>
 
-        {/* Features List */}
         <h2 className="text-xl font-semibold text-green-700 mb-2">Key Benefits:</h2>
         <ul className="list-disc list-inside text-gray-800 mb-8 space-y-2">
           {plan.features.map((feature, idx) => (
@@ -85,7 +94,6 @@ export default async function PlanPage({
           ))}
         </ul>
 
-        {/* CTA */}
         <div className="text-center">
           <Link
             href="/form"
